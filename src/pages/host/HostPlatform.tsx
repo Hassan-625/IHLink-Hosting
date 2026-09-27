@@ -249,7 +249,7 @@ export function DomainSearch() {
   const [params]=useSearchParams();const query=(params.get('q')||'').toLowerCase().replace(/[^a-z0-9.-]/g,'');const base=(query.split('.')[0]||'mybusiness').replace(/[^a-z0-9-]/g,'');const [prices,setPrices]=useState<DomainPrice[]>([]),[loading,setLoading]=useState(true);
   useEffect(()=>{if(!supabase){setLoading(false);return;}void supabase.from('host_domain_prices').select('id,extension,registration_price,renewal_price,transfer_price,lookup_provider,lookup_url,is_restricted,eligibility_summary,requirements').eq('is_active',true).order('registration_price').then(({data})=>{setPrices(((data||[])as DomainPrice[]).map(x=>({...x,registration_price:Number(x.registration_price),renewal_price:Number(x.renewal_price),transfer_price:Number(x.transfer_price)})));setLoading(false);});},[]);
   const requestedTld=query.includes('.')?`.${query.split('.').slice(1).join('.')}`:'';
-  const invalidUi=requestedTld==='.ui';
+  const invalidUi=requestedTld==='.ui';const unsupportedTld=Boolean(requestedTld&&!prices.some(p=>p.extension===requestedTld));
   return (
     <>
       <Header product="host" />
@@ -268,6 +268,7 @@ export function DomainSearch() {
           <h2 className="text-xl font-bold">{query?`Registration options for “${base}”`:'Suggested domains'}</h2>
           <p className="mt-1 text-sm text-muted">Availability is confirmed by our upstream registrar before payment and activation.</p>
           {invalidUi&&<div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"><b>.ui is not a delegated public top-level domain.</b> Please choose an available extension such as .com, .org, .ng, .com.ng, or a valid country-code domain.</div>}
+          {!loading&&unsupportedTld&&!invalidUi&&<div className="mt-5 rounded-xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900"><b>{requestedTld} requires assisted handling.</b> This extension is not in the self-service catalogue. <Link className="font-bold underline" to={`/host/support?category=domain&subject=${encodeURIComponent('TLD enquiry: '+query)}`}>Contact Hosting Support</Link> for availability, eligibility and registration guidance.</div>}
           <div className="space-y-3 mt-5">
             {loading?<Card><p className="text-sm text-muted">Loading current domain pricing…</p></Card>:prices.map((d) => {const domain=`${base}${d.extension}`;const isNg=d.extension.endsWith('.ng');const provider=d.lookup_provider||(isNg?'NiRA':'WHOIS.com');const lookup=d.lookup_url||(isNg?'https://nira.org.ng/whois/':`https://www.whois.com/whois/${domain}`);return (
               <Card key={d.id} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -584,7 +585,7 @@ export function HostDashboard({
 }
 
 export function HostSupport() {
-  const {user}=useAuth();const [form,setForm]=useState({subject:'',category:'hosting',priority:'normal',message:''}),[busy,setBusy]=useState(false),[notice,setNotice]=useState<{error?:boolean;text:string}|null>(null),[showKnowledge,setShowKnowledge]=useState(false);
+  const {user}=useAuth();const [supportParams]=useSearchParams();const [form,setForm]=useState({subject:supportParams.get('subject')||'',category:supportParams.get('category')||'hosting',priority:'normal',message:''}),[busy,setBusy]=useState(false),[notice,setNotice]=useState<{error?:boolean;text:string}|null>(null),[showKnowledge,setShowKnowledge]=useState(false);
   function continueSupport(index:number){if(index===0){setShowKnowledge(true);setTimeout(()=>document.getElementById('host-knowledge')?.scrollIntoView({behavior:'smooth'}),50);return;}setShowKnowledge(false);if(index===2)setForm(v=>({...v,category:'migration',subject:v.subject||'Website migration assistance'}));setTimeout(()=>document.querySelector('main form')?.scrollIntoView({behavior:'smooth',block:'center'}),50);}
   async function submit(e:FormEvent){e.preventDefault();if(!supabase||!user)return;setBusy(true);setNotice(null);const {error}=await supabase.from('host_support_tickets').insert({user_id:user.id,...form});setBusy(false);if(error){setNotice({error:true,text:error.message});return;}setNotice({text:'Support ticket submitted. Our hosting team will respond from your account.'});setForm({subject:'',category:'hosting',priority:'normal',message:''});}
   return (
