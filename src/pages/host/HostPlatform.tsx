@@ -120,7 +120,10 @@ export function HostHome() {
             </div>
             <div className="relative">
               <div className="absolute -inset-8 bg-cyan-300/20 blur-3xl rounded-full" />
-              <Card className="relative !bg-white/95">
+              <div className="relative overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl">
+                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=85" alt="Modern data-centre server infrastructure" className="h-64 w-full object-cover lg:h-80" />
+              </div>
+              <Card className="relative !bg-white/95 mt-4">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-xs text-muted">Infrastructure health</p>
@@ -149,7 +152,7 @@ export function HostHome() {
             </div>
           </div>
         </section>
-        <ExperiencePhoto src="/images/network-engineer.jpg" alt="A network engineer maintaining server infrastructure" eyebrow="Infrastructure with people behind it" title="Hosting supported by practical technical expertise" text="Launch with confidence knowing that domains, servers, security and migrations are backed by people who understand real infrastructure." accentClass="text-cyan-700" />
+        <ExperiencePhoto src="https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&w=1400&q=85" alt="A network engineer maintaining server infrastructure" eyebrow="Infrastructure with people behind it" title="Hosting supported by practical technical expertise" text="Launch with confidence knowing that domains, servers, security and migrations are backed by people who understand real infrastructure." accentClass="text-cyan-700" />
         <section className="max-w-[1440px] mx-auto px-6 lg:px-10 py-20">
           <div className="text-center">
             <p className="text-cyan-700 font-bold">Simple packages</p>
@@ -197,6 +200,21 @@ export function HostHome() {
             ))}
           </div>
         </section>
+        <section className="max-w-[1440px] mx-auto px-6 lg:px-10 pb-20">
+          <div className="text-center mb-10"><p className="text-cyan-700 font-bold">Everything needed to operate</p><h2 className="text-4xl font-black mt-2">A working hosting environment, not just a storefront</h2></div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              [Globe2,"Domain & DNS management","Domain lifecycle, nameservers, DNS zones and DNS records from your account."],
+              [ShieldCheck,"SSL & security","Track SSL certificates and secure provisioned services."],
+              [Database,"Backups & migration","Hosting backup records plus assisted website migration workflows."],
+              [Server,"Web hosting & servers","Shared hosting, reseller hosting, VPS and dedicated-server service management."],
+              [CreditCard,"Billing & renewals","Verified payments, invoices, payment retry and service renewal."],
+              [Activity,"Usage & service status","Provisioning state, active-service status and hosting usage records."],
+              [Headphones,"Support tickets","Authenticated support for domains, hosting, billing, migration and servers."],
+              [RefreshCw,"Lifecycle management","Order, provision, renew and manage services from one Hosting dashboard."]
+            ].map(([I,t,d])=>{const Icon=I as typeof Server;return <Card hover key={String(t)}><Icon className="w-7 h-7 text-cyan-700"/><h3 className="font-bold mt-4">{String(t)}</h3><p className="text-sm text-muted mt-2">{String(d)}</p></Card>})}
+          </div>
+        </section>
         <section className="bg-cyan-50 py-16">
           <div className="max-w-[1440px] mx-auto px-6 lg:px-10 grid md:grid-cols-4 gap-6">
             {[
@@ -231,7 +249,7 @@ export function DomainSearch() {
   const [params]=useSearchParams();const query=(params.get('q')||'').toLowerCase().replace(/[^a-z0-9.-]/g,'');const base=(query.split('.')[0]||'mybusiness').replace(/[^a-z0-9-]/g,'');const [prices,setPrices]=useState<DomainPrice[]>([]),[loading,setLoading]=useState(true);
   useEffect(()=>{if(!supabase){setLoading(false);return;}void supabase.from('host_domain_prices').select('id,extension,registration_price,renewal_price,transfer_price,lookup_provider,lookup_url,is_restricted,eligibility_summary,requirements').eq('is_active',true).order('registration_price').then(({data})=>{setPrices(((data||[])as DomainPrice[]).map(x=>({...x,registration_price:Number(x.registration_price),renewal_price:Number(x.renewal_price),transfer_price:Number(x.transfer_price)})));setLoading(false);});},[]);
   const requestedTld=query.includes('.')?`.${query.split('.').slice(1).join('.')}`:'';
-  const invalidUi=requestedTld==='.ui';
+  const invalidUi=requestedTld==='.ui';const unsupportedTld=Boolean(requestedTld&&!prices.some(p=>p.extension===requestedTld));
   return (
     <>
       <Header product="host" />
@@ -250,8 +268,9 @@ export function DomainSearch() {
           <h2 className="text-xl font-bold">{query?`Registration options for “${base}”`:'Suggested domains'}</h2>
           <p className="mt-1 text-sm text-muted">Availability is confirmed by our upstream registrar before payment and activation.</p>
           {invalidUi&&<div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"><b>.ui is not a delegated public top-level domain.</b> Please choose an available extension such as .com, .org, .ng, .com.ng, or a valid country-code domain.</div>}
+          {!loading&&unsupportedTld&&!invalidUi&&<div className="mt-5 rounded-xl border border-cyan-200 bg-cyan-50 p-4 text-sm text-cyan-900"><b>{requestedTld} requires assisted handling.</b> This extension is not in the self-service catalogue. <Link className="font-bold underline" to={`/host/support?category=domain&subject=${encodeURIComponent('TLD enquiry: '+query)}`}>Contact Hosting Support</Link> for availability, eligibility and registration guidance.</div>}
           <div className="space-y-3 mt-5">
-            {loading?<Card><p className="text-sm text-muted">Loading current domain pricing…</p></Card>:prices.map((d) => {const domain=`${base}${d.extension}`;const isNg=d.extension.endsWith('.ng');const provider=d.lookup_provider||(isNg?'NiRA':'ICANN');const lookup=d.lookup_url||(isNg?'https://nira.org.ng/whois/':'https://lookup.icann.org/en');return (
+            {loading?<Card><p className="text-sm text-muted">Loading current domain pricing…</p></Card>:prices.map((d) => {const domain=`${base}${d.extension}`;const isNg=d.extension.endsWith('.ng');const provider=d.lookup_provider||(isNg?'NiRA':'WHOIS.com');const lookup=d.lookup_url||(isNg?'https://nira.org.ng/whois/':`https://www.whois.com/whois/${domain}`);return (
               <Card key={d.id} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="font-bold text-lg">{domain}</p>
@@ -262,11 +281,7 @@ export function DomainSearch() {
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="font-bold">{naira(d.registration_price)}/year</span>
                   <a href={lookup} target="_blank" rel="noreferrer"><Button variant="secondary">Check {provider}</Button></a>
-                  <Link to={`/host/order?domain=${encodeURIComponent(domain)}&price=${d.registration_price}&domain_price=${d.id}&restricted=${d.is_restricted?'1':'0'}`}>
-                    <Button themeClass="bg-cyan-600 hover:bg-cyan-700">
-                      {d.is_restricted?'Start verified request':'Request registration'}
-                    </Button>
-                  </Link>
+                  {d.is_restricted ? <Link to={`/host/support?category=domain&subject=${encodeURIComponent('Restricted domain request: '+domain)}`}><Button themeClass="bg-amber-600 hover:bg-amber-700">Contact support</Button></Link> : <Link to={`/host/order?domain=${encodeURIComponent(domain)}&price=${d.registration_price}&domain_price=${d.id}&restricted=0`}><Button themeClass="bg-cyan-600 hover:bg-cyan-700">Request registration</Button></Link>}
                 </div>
               </Card>
             )})}
@@ -570,7 +585,7 @@ export function HostDashboard({
 }
 
 export function HostSupport() {
-  const {user}=useAuth();const [form,setForm]=useState({subject:'',category:'hosting',priority:'normal',message:''}),[busy,setBusy]=useState(false),[notice,setNotice]=useState<{error?:boolean;text:string}|null>(null),[showKnowledge,setShowKnowledge]=useState(false);
+  const {user}=useAuth();const [supportParams]=useSearchParams();const [form,setForm]=useState({subject:supportParams.get('subject')||'',category:supportParams.get('category')||'hosting',priority:'normal',message:''}),[busy,setBusy]=useState(false),[notice,setNotice]=useState<{error?:boolean;text:string}|null>(null),[showKnowledge,setShowKnowledge]=useState(false);
   function continueSupport(index:number){if(index===0){setShowKnowledge(true);setTimeout(()=>document.getElementById('host-knowledge')?.scrollIntoView({behavior:'smooth'}),50);return;}setShowKnowledge(false);if(index===2)setForm(v=>({...v,category:'migration',subject:v.subject||'Website migration assistance'}));setTimeout(()=>document.querySelector('main form')?.scrollIntoView({behavior:'smooth',block:'center'}),50);}
   async function submit(e:FormEvent){e.preventDefault();if(!supabase||!user)return;setBusy(true);setNotice(null);const {error}=await supabase.from('host_support_tickets').insert({user_id:user.id,...form});setBusy(false);if(error){setNotice({error:true,text:error.message});return;}setNotice({text:'Support ticket submitted. Our hosting team will respond from your account.'});setForm({subject:'',category:'hosting',priority:'normal',message:''});}
   return (
