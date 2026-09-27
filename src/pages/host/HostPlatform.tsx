@@ -9,6 +9,7 @@ import { ExperiencePhoto } from "@/components/ExperiencePhoto";
 import { ManagedContentSections } from "@/components/ManagedContentSections";
 import { useManagedHero } from "@/hooks/useManagedHero";
 import { useAuth } from "@/context/AuthContext";
+import { IH_LINK_LOGO } from "@/assets/ihlinkLogo";
 import { supabase } from "@/lib/supabase";
 import {
   Check,
@@ -121,7 +122,7 @@ export function HostHome() {
             <div className="relative">
               <div className="absolute -inset-8 bg-cyan-300/20 blur-3xl rounded-full" />
               <div className="relative overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl">
-                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=85" alt="Modern data-centre server infrastructure" className="h-64 w-full object-cover lg:h-80" />
+                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1400&q=85" alt="Modern data-centre server infrastructure" className="h-64 w-full object-cover lg:h-80" /><div className="absolute left-5 top-5 flex items-center gap-2 rounded-xl bg-white/95 p-2 pr-4 text-slate-900 shadow-lg"><img src={IH_LINK_LOGO} alt="IHLink" className="h-10 w-10 rounded-lg object-contain"/><div><b className="block text-sm">IHLink Host</b><span className="text-xs text-slate-500">Domains • Hosting • Cloud</span></div></div>
               </div>
               <Card className="relative !bg-white/95 mt-4">
                 <div className="flex justify-between items-center">
