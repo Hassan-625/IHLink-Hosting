@@ -99,6 +99,8 @@ const productNavs: Record<ProductKey, NavItem[]> = {
     { label: 'VPS', href: '/host/vps' },
     { label: 'Dedicated', href: '/host/dedicated' },
     { label: 'Support', href: '/host/support' },
+    { label: 'Notifications', href: '/host/notifications' },
+    { label: 'Contact', href: '/host/contact' },
     { label: 'Dashboard', href: '/host/dashboard' },
   ],
   engineering: [
