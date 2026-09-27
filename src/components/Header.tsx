@@ -94,14 +94,14 @@ const productNavs: Record<ProductKey, NavItem[]> = {
   ],
   host: [
     { label: 'Home', href: platformUrl('host') },
+    { label: 'Dashboard', href: '/host/dashboard' },
     { label: 'Domains', href: '/host/domains' },
     { label: 'Web Hosting', href: '/host/hosting' },
     { label: 'VPS', href: '/host/vps' },
     { label: 'Dedicated', href: '/host/dedicated' },
-    { label: 'Support', href: '/host/support' },
-    { label: 'Notifications', href: '/host/notifications' },
-    { label: 'Contact', href: '/host/contact' },
-    { label: 'Dashboard', href: '/host/dashboard' },
+    { label: 'Pricing', href: '/host/pricing' },
+    { label: 'Payments', href: '/host/payments' },
+    { label: 'Get in Touch', href: '/host/get-in-touch' },
   ],
   engineering: [
     { label: 'Home', href: platformUrl('engineering') },
