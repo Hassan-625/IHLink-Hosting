@@ -302,6 +302,20 @@ export function HostingCatalog({
 }) {
   const c = catalog[type],
     Icon = c.icon;
+  const [publishedPlans, setPublishedPlans] = useState<HostPlan[]>([]);
+  const [planError, setPlanError] = useState('');
+  const [plansLoading, setPlansLoading] = useState(true);
+  useEffect(() => {
+    if (!supabase) { setPlanError('Hosting pricing is unavailable.'); setPlansLoading(false); return; }
+    let active = true;
+    void supabase.from('host_plans').select('id,code,name,category,monthly_price,description,features,is_active').eq('is_active', true).order('sort_order').then(({data,error}) => {
+      if (!active) return;
+      setPublishedPlans(((data || []) as HostPlan[]).filter(plan => type === 'hosting' ? ['shared','business','hosting'].includes(plan.category) : plan.category === type));
+      setPlanError(error?.message || '');
+      setPlansLoading(false);
+    });
+    return () => { active = false; };
+  }, [type]);
   return (
     <>
       <Header product="host" />
@@ -332,28 +346,20 @@ export function HostingCatalog({
             </div>
           </div>
         </section>
-        <section className="max-w-[1200px] mx-auto px-6 py-16 grid md:grid-cols-3 gap-6">
-          {c.items.map((x, i) => (
-            <Card hover key={x}>
-              <div className="w-11 h-11 rounded-xl bg-cyan-100 grid place-items-center">
-                <Server className="w-5 h-5 text-cyan-700" />
-              </div>
-              <h2 className="font-bold text-xl mt-4">{x}</h2>
-              <p className="text-sm text-muted mt-2">
-                Reliable resources, simple management, SSL and support included.
-              </p>
-              <p className="font-black text-2xl mt-5">
-                From ₦{[2500, 6500, 18000][i].toLocaleString()}
-                <span className="text-sm font-normal text-muted">/mo</span>
-              </p>
-              <Link
-                to="/host/order"
-                className="inline-flex gap-2 items-center text-cyan-700 font-bold mt-5"
-              >
-                View configuration <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Card>
-          ))}
+        <section className="max-w-[1200px] mx-auto px-6 py-16">
+          <h2 className="text-2xl font-black">Available plans</h2>
+          {plansLoading && <p className="mt-4 text-muted">Loading current prices…</p>}
+          {planError && <p role="alert" className="mt-4 text-rose-700">Unable to load prices: {planError}</p>}
+          {!plansLoading && !planError && !publishedPlans.length && <p className="mt-4 text-muted">No plans are published for this service. <Link to="/host/get-in-touch" className="font-bold text-cyan-700">Ask for a quote</Link>.</p>}
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
+            {publishedPlans.map(plan => <Card hover key={plan.id}>
+              <div className="w-11 h-11 rounded-xl bg-cyan-100 grid place-items-center"><Server className="w-5 h-5 text-cyan-700" /></div>
+              <h3 className="font-bold text-xl mt-4">{plan.name}</h3>
+              <p className="text-sm text-muted mt-2">{plan.description || 'Contact IHLink for plan details.'}</p>
+              <p className="font-black text-2xl mt-5">{naira(Number(plan.monthly_price))}<span className="text-sm font-normal text-muted">/mo</span></p>
+              <Link to={`/host/order?plan=${encodeURIComponent(plan.id)}`} className="inline-flex gap-2 items-center text-cyan-700 font-bold mt-5">View configuration <ArrowRight className="w-4 h-4" /></Link>
+            </Card>)}
+          </div>
         </section>
       </main>
       <Footer product="host" />
