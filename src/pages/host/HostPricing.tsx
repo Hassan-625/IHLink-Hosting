@@ -13,6 +13,7 @@ export function HostPricing() {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     let active = true;
+    if (!supabase) { setError('Hosting data is unavailable.'); setLoading(false); return; }
     void supabase.from('host_plans').select('id,name,category,monthly_price,description,features').eq('is_active', true).order('sort_order').then(({ data, error: issue }) => {
       if (!active) return;
       setPlans((data || []) as Plan[]);
