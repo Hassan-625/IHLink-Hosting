@@ -282,7 +282,7 @@ export function DomainSearch() {
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="font-bold">{naira(d.registration_price)}/year</span>
                   <a href={lookup} target="_blank" rel="noreferrer"><Button variant="secondary">Check {provider}</Button></a>
-                  {d.is_restricted ? <Link to={`/host/support?category=domain&subject=${encodeURIComponent('Restricted domain request: '+domain)}`}><Button themeClass="bg-amber-600 hover:bg-amber-700">Contact support</Button></Link> : <Link to={`/host/order?domain=${encodeURIComponent(domain)}&price=${d.registration_price}&domain_price=${d.id}&restricted=0`}><Button themeClass="bg-cyan-600 hover:bg-cyan-700">Request registration</Button></Link>}
+                  {d.is_restricted ? <Link to={`/host/support?category=domain&subject=${encodeURIComponent('Restricted domain request: '+domain)}`}><Button themeClass="bg-amber-600 hover:bg-amber-700">Contact support</Button></Link> : <Link to={`/host/order?domain=${encodeURIComponent(domain)}&domain_price=${d.id}`}><Button themeClass="bg-cyan-600 hover:bg-cyan-700">Request registration</Button></Link>}
                 </div>
               </Card>
             )})}
