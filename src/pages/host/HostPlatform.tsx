@@ -282,7 +282,7 @@ export function DomainSearch() {
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="font-bold">{naira(d.registration_price)}/year</span>
                   <a href={lookup} target="_blank" rel="noreferrer"><Button variant="secondary">Check {provider}</Button></a>
-                  {d.is_restricted ? <Link to={`/host/support?category=domain&subject=${encodeURIComponent('Restricted domain request: '+domain)}`}><Button themeClass="bg-amber-600 hover:bg-amber-700">Contact support</Button></Link> : <Link to={`/host/order?domain=${encodeURIComponent(domain)}&price=${d.registration_price}&domain_price=${d.id}&restricted=0`}><Button themeClass="bg-cyan-600 hover:bg-cyan-700">Request registration</Button></Link>}
+                  {d.is_restricted ? <Link to={`/host/support?category=domain&subject=${encodeURIComponent('Restricted domain request: '+domain)}`}><Button themeClass="bg-amber-600 hover:bg-amber-700">Contact support</Button></Link> : <Link to={`/host/order?domain=${encodeURIComponent(domain)}&domain_price=${d.id}`}><Button themeClass="bg-cyan-600 hover:bg-cyan-700">Request registration</Button></Link>}
                 </div>
               </Card>
             )})}
@@ -302,6 +302,20 @@ export function HostingCatalog({
 }) {
   const c = catalog[type],
     Icon = c.icon;
+  const [publishedPlans, setPublishedPlans] = useState<HostPlan[]>([]);
+  const [planError, setPlanError] = useState('');
+  const [plansLoading, setPlansLoading] = useState(true);
+  useEffect(() => {
+    if (!supabase) { setPlanError('Hosting pricing is unavailable.'); setPlansLoading(false); return; }
+    let active = true;
+    void supabase.from('host_plans').select('id,code,name,category,monthly_price,description,features,is_active').eq('is_active', true).order('sort_order').then(({data,error}) => {
+      if (!active) return;
+      setPublishedPlans(((data || []) as HostPlan[]).filter(plan => type === 'hosting' ? ['shared','business','hosting'].includes(plan.category) : plan.category === type));
+      setPlanError(error?.message || '');
+      setPlansLoading(false);
+    });
+    return () => { active = false; };
+  }, [type]);
   return (
     <>
       <Header product="host" />
@@ -332,28 +346,20 @@ export function HostingCatalog({
             </div>
           </div>
         </section>
-        <section className="max-w-[1200px] mx-auto px-6 py-16 grid md:grid-cols-3 gap-6">
-          {c.items.map((x, i) => (
-            <Card hover key={x}>
-              <div className="w-11 h-11 rounded-xl bg-cyan-100 grid place-items-center">
-                <Server className="w-5 h-5 text-cyan-700" />
-              </div>
-              <h2 className="font-bold text-xl mt-4">{x}</h2>
-              <p className="text-sm text-muted mt-2">
-                Reliable resources, simple management, SSL and support included.
-              </p>
-              <p className="font-black text-2xl mt-5">
-                From ₦{[2500, 6500, 18000][i].toLocaleString()}
-                <span className="text-sm font-normal text-muted">/mo</span>
-              </p>
-              <Link
-                to="/host/order"
-                className="inline-flex gap-2 items-center text-cyan-700 font-bold mt-5"
-              >
-                View configuration <ArrowRight className="w-4 h-4" />
-              </Link>
-            </Card>
-          ))}
+        <section className="max-w-[1200px] mx-auto px-6 py-16">
+          <h2 className="text-2xl font-black">Available plans</h2>
+          {plansLoading && <p className="mt-4 text-muted">Loading current prices…</p>}
+          {planError && <p role="alert" className="mt-4 text-rose-700">Unable to load prices: {planError}</p>}
+          {!plansLoading && !planError && !publishedPlans.length && <p className="mt-4 text-muted">No plans are published for this service. <Link to="/host/get-in-touch" className="font-bold text-cyan-700">Ask for a quote</Link>.</p>}
+          <div className="mt-6 grid gap-6 md:grid-cols-3">
+            {publishedPlans.map(plan => <Card hover key={plan.id}>
+              <div className="w-11 h-11 rounded-xl bg-cyan-100 grid place-items-center"><Server className="w-5 h-5 text-cyan-700" /></div>
+              <h3 className="font-bold text-xl mt-4">{plan.name}</h3>
+              <p className="text-sm text-muted mt-2">{plan.description || 'Contact IHLink for plan details.'}</p>
+              <p className="font-black text-2xl mt-5">{naira(Number(plan.monthly_price))}<span className="text-sm font-normal text-muted">/mo</span></p>
+              <Link to={`/host/order?plan=${encodeURIComponent(plan.id)}`} className="inline-flex gap-2 items-center text-cyan-700 font-bold mt-5">View configuration <ArrowRight className="w-4 h-4" /></Link>
+            </Card>)}
+          </div>
         </section>
       </main>
       <Footer product="host" />
@@ -362,10 +368,12 @@ export function HostingCatalog({
 }
 
 export function HostOrder() {
-  const {user}=useAuth();const navigate=useNavigate();const [params]=useSearchParams();const [availablePlans,setAvailablePlans]=useState<HostPlan[]>([]),[planId,setPlanId]=useState(''),[domain,setDomain]=useState(params.get('domain')||''),[cycle,setCycle]=useState(12),[notes,setNotes]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState<{error?:boolean;text:string}|null>(null);
+  const {user}=useAuth();const navigate=useNavigate();const [params]=useSearchParams();const [availablePlans,setAvailablePlans]=useState<HostPlan[]>([]),[domainProduct,setDomainProduct]=useState<DomainPrice|null>(null),[planId,setPlanId]=useState(''),[domain,setDomain]=useState(params.get('domain')||''),[cycle,setCycle]=useState(12),[notes,setNotes]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState<{error?:boolean;text:string}|null>(null);
   useEffect(()=>{if(!supabase)return;void supabase.from('host_plans').select('id,code,name,category,monthly_price,description,features,is_active').eq('is_active',true).order('sort_order').then(({data})=>{const rows=((data||[])as HostPlan[]).map(x=>({...x,monthly_price:Number(x.monthly_price)}));setAvailablePlans(rows);setPlanId(v=>v||params.get('plan')||(params.get('domain')?'':rows[0]?.id)||'');});},[params]);
-  const selected=availablePlans.find(x=>x.id===planId),domainPrice=Number(params.get('price')||0),isDomainOnly=Boolean(params.get('domain')&&!selected),amount=isDomainOnly?domainPrice:(selected?.monthly_price||0)*cycle,isRestricted=params.get('restricted')==='1';
-  async function submit(e:FormEvent){e.preventDefault();if(!supabase||!user)return;setBusy(true);setMessage(null);const category=selected?.category;const orderType=isDomainOnly?'domain_registration':category==='reseller'?'reseller':category==='vps'?'vps':category==='dedicated'?'dedicated':'hosting';const {data,error}=await supabase.rpc('create_host_order',{p_order_type:orderType,p_domain:domain.trim()||null,p_plan:selected?.id||null,p_domain_price:params.get('domain_price')||null,p_cycle:isDomainOnly?12:cycle,p_notes:notes||null});if(error){setBusy(false);setMessage({error:true,text:error.message});return;}if(data.status==='pending_review'){setBusy(false);setMessage({text:`Order ${data.order_number} created. IHLink must confirm domain availability/eligibility before payment is enabled. Do not transfer money yet.`});return;}const pay=await supabase.functions.invoke('host-payment',{body:{order_id:data.order_id}});setBusy(false);if(pay.error||!pay.data?.data){setMessage({error:true,text:pay.data?.message||pay.data?.error||pay.error?.message||'Order created, but payment instructions could not be generated. Open your dashboard to retry.'});return;}const x=pay.data.data;setMessage({text:`Order ${data.order_number} created. Transfer exactly ${naira(Number(x.intent.amount))} to ${x.bank.bank_name}, ${x.bank.account_number} (${x.bank.account_name}). Payment is verified separately from service provisioning.`});}
+  const domainPriceId=params.get('domain_price');
+  useEffect(()=>{if(!supabase||!domainPriceId){setDomainProduct(null);return;}let active=true;void supabase.from('host_domain_prices').select('id,extension,registration_price,renewal_price,transfer_price,is_restricted').eq('id',domainPriceId).eq('is_active',true).maybeSingle().then(({data})=>{if(active)setDomainProduct(data?{...data,registration_price:Number(data.registration_price),renewal_price:Number(data.renewal_price),transfer_price:Number(data.transfer_price)}:null)});return()=>{active=false};},[domainPriceId]);
+  const selected=availablePlans.find(x=>x.id===planId),isDomainOnly=Boolean(params.get('domain')&&!selected),amount=isDomainOnly?Number(domainProduct?.registration_price||0):(selected?.monthly_price||0)*cycle,isRestricted=Boolean(domainProduct?.is_restricted);
+  async function submit(e:FormEvent){e.preventDefault();if(!supabase||!user||amount<=0||(isDomainOnly&&!domainProduct))return;setBusy(true);setMessage(null);const category=selected?.category;const orderType=isDomainOnly?'domain_registration':category==='reseller'?'reseller':category==='vps'?'vps':category==='dedicated'?'dedicated':'hosting';const {data,error}=await supabase.rpc('create_host_order',{p_order_type:orderType,p_domain:domain.trim()||null,p_plan:selected?.id||null,p_domain_price:isDomainOnly?domainProduct?.id:null,p_cycle:isDomainOnly?12:cycle,p_notes:notes||null});if(error){setBusy(false);setMessage({error:true,text:error.message});return;}if(data.status==='pending_review'){setBusy(false);setMessage({text:`Order ${data.order_number} created. IHLink must confirm domain availability/eligibility before payment is enabled. Do not transfer money yet.`});return;}const pay=await supabase.functions.invoke('host-payment',{body:{order_id:data.order_id}});setBusy(false);if(pay.error||!pay.data?.data){setMessage({error:true,text:pay.data?.message||pay.data?.error||pay.error?.message||'Order created, but payment instructions could not be generated. Open your dashboard to retry.'});return;}const x=pay.data.data;setMessage({text:`Order ${data.order_number} created. Transfer exactly ${naira(Number(x.intent.amount))} to ${x.bank.bank_name}, ${x.bank.account_number} (${x.bank.account_name}). Payment is verified separately from service provisioning.`});}
   return (
     <>
       <Header product="host" />
