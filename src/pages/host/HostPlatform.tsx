@@ -1,3 +1,4 @@
+import {ServiceGuide} from '@/components/ServiceGuide';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
@@ -122,7 +123,7 @@ export function HostHome() {
             <div className="relative">
               <div className="absolute -inset-8 bg-cyan-300/20 blur-3xl rounded-full" />
               <div className="relative overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl">
-                <img src="/images/ihlink-service-scene.webp" alt="IHLink Hosting and Domains branded infrastructure illustration" className="h-64 w-full object-cover lg:h-80" /><div className="absolute left-5 top-5 flex items-center gap-2 rounded-xl bg-white/95 p-2 pr-4 text-slate-900 shadow-lg"><img src={IH_LINK_LOGO} alt="IHLink" className="h-10 w-10 rounded-lg object-contain"/><div><b className="block text-sm">IHLink Host</b><span className="text-xs text-slate-500">Domains • Hosting • Cloud</span></div></div>
+                <img src="/images/ihlink-service-scene.webp" alt="IHLink Hosting and Domains branded infrastructure illustration" width="1672" height="941" className="block h-auto w-full" /><div className="absolute left-5 top-5 flex items-center gap-2 rounded-xl bg-white/95 p-2 pr-4 text-slate-900 shadow-lg"><img src={IH_LINK_LOGO} alt="IHLink" className="h-10 w-10 rounded-lg object-contain"/><div><b className="block text-sm">IHLink Host</b><span className="text-xs text-slate-500">Domains • Hosting • Cloud</span></div></div>
               </div>
               <Card className="relative !bg-white/95 mt-4">
                 <div className="flex justify-between items-center">
@@ -153,7 +154,7 @@ export function HostHome() {
             </div>
           </div>
         </section>
-        <ExperiencePhoto src="https://images.unsplash.com/photo-1597852074816-d933c7d2b988?auto=format&fit=crop&w=1400&q=85" alt="A network engineer maintaining server infrastructure" eyebrow="Infrastructure with people behind it" title="Hosting supported by practical technical expertise" text="Launch with confidence knowing that domains, servers, security and migrations are backed by people who understand real infrastructure." accentClass="text-cyan-700" />
+        <ServiceGuide/><ExperiencePhoto src="/images/ihlink-service-scene.webp" alt="IHLink Hosting service illustration" eyebrow="Infrastructure with people behind it" title="Hosting supported by practical technical expertise" text="Launch with confidence knowing that domains, servers, security and migrations are backed by people who understand real infrastructure." accentClass="text-cyan-700" />
         <section className="max-w-[1440px] mx-auto px-6 lg:px-10 py-20">
           <div className="text-center">
             <p className="text-cyan-700 font-bold">Simple packages</p>
