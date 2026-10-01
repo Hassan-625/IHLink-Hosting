@@ -167,13 +167,8 @@ export function HostHome() {
               <Card
                 hover
                 key={p.id}
-                className={index === 1 ? "ring-2 ring-cyan-500 relative" : ""}
+                className=""
               >
-                {index === 1 && (
-                  <span className="absolute -top-3 right-5 bg-cyan-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    Most popular
-                  </span>
-                )}
                 <h3 className="text-xl font-bold">{p.name}</h3>
                 <p className="mt-4">
                   <span className="text-4xl font-black">{naira(p.monthly_price)}</span>
@@ -190,10 +185,8 @@ export function HostHome() {
                 <Link to="/host/order">
                   <Button
                     fullWidth
-                    variant={index === 1 ? "primary" : "secondary"}
-                    themeClass={
-                      index === 1 ? "bg-cyan-600 hover:bg-cyan-700" : undefined
-                    }
+                    variant="secondary"
+
                   >
                     Choose {p.name}
                   </Button>
