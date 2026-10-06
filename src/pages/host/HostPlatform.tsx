@@ -128,16 +128,16 @@ export function HostHome() {
               <Card className="relative !bg-white/95 mt-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-xs text-muted">Infrastructure health</p>
+                    <p className="text-xs text-muted">Hosting options</p>
                     <p className="text-xl font-black text-ink">
                       Hosting services
                     </p>
                   </div>
-                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="w-3 h-3 rounded-full bg-cyan-500" />
                 </div>
                 <div className="grid grid-cols-2 gap-3 mt-6">
                   {[
-                    ["Live", "Plans from catalog"],
+                    ["Plans", "Approved catalogue"],
                     ["Secure", "Account access"],
                     ["SSL", "Plan-dependent"],
                     ["Support", "Ticket workflow"],
